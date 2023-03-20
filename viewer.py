@@ -67,13 +67,13 @@ class TexturedPlane(Textured):
 def main():    
     """ create a window, add scene objects, then run rendering loop """
     viewer = Viewer()
-    shader = Shader("color.vert", "color.frag")
-    terrain_shadder = Shader("terrain_texture.vert", "terrain_texture.frag")
+    shader = Shader("shader/color.vert", "shader/color.frag")
+    terrain_shadder = Shader("shader/terrain.vert", "shader/terrain.frag")
     
     if len(sys.argv) != 2:
         print('Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in'
               ' format supported by assimp.' % (sys.argv[0],))
-        viewer.add(TexturedPlane(terrain_shadder, "volcano.png"))
+        viewer.add(TexturedPlane(terrain_shadder, "texture/volcano.png"))
     
 
     # start rendering loop
