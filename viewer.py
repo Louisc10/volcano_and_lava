@@ -29,7 +29,7 @@ class Axis(Mesh):
 
 class Triangle(Mesh):
     """Hello triangle object"""
-    def __init__(self, shader):
+    def __init__(self, shader, positio):
         position = np.array(((0, .5, 0), (-.5, -.5, 0), (.5, -.5, 0)), 'f')
         color = np.array(((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'f')
         self.color = (1, 1, 0)
@@ -42,6 +42,61 @@ class Triangle(Mesh):
     def key_handler(self, key):
         if key == glfw.KEY_C:
             self.color = (0, 0, 0)
+
+class Volcano:
+    def __init__(self, shader):
+        self.shader = shader
+        
+        top_volcano = np.array((146/255, 104/255, 41/255), 'f')
+        bottom_volcano = np.array((146/255, 116/255, 91/255), 'f')
+
+        # TODO: this is still a triangle, new values needed for Pyramid
+        position = np.array(((0,.2,0), (-.1,.5,-.3), (-.3,.5,-.1), (-.3,.5,.1), (-.1,.5,.3), (.1,.5,.3), (.3,.5,.1), (.3,.5,-.1), (.1,.5,-.3), (-.2,0,-.7), (-.4,0,-.6), (-.6,0,-.4), (-.7,0,-.2), (-.7,0,0), (-.7,0,.2), (-.6,0,.4), (-.4,0,.6), (-.2,0,.7), (0,0,.7), (.2,0,.7), (.4,0,.6), (.6,0,.4), (.7,0,.2), (.7,0,0), (.7,0,-.2), (.6,0,-.4), (.4,0,-.6), (.2,0,-.7), (0,0,-.7)), 'f')
+        
+        color = np.array(((0, 0, 0), top_volcano, top_volcano, top_volcano, top_volcano, top_volcano, top_volcano, top_volcano, top_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano), 'f')
+        
+        self.index = np.array(((1, 2, 0), (2, 3, 0), (3, 4, 0), (4, 5, 0), (5, 6, 0), (6, 7, 0), (7, 8, 0), (8, 1, 0), (9, 10, 1), (10, 2, 1), (10, 11, 2), (11, 12, 2), (12, 13, 2), (13, 3, 2), (13, 14, 3), (14, 15, 3), (15, 4, 3), (15, 16, 4), (16, 17, 4), (17, 18, 4), (4, 18, 5), (18, 19, 5), (19, 20, 5), (5, 20, 6), (6, 20, 21), (6, 21, 22), (6, 22, 23), (7, 6, 23), (7, 23, 24), (7, 24, 25), (7, 25, 26), (8, 7, 26), (8, 26, 27), (8, 27, 28), (1, 8, 28), (1, 28, 9)), np.uint32)
+
+        self.glid = GL.glGenVertexArrays(1)  # create OpenGL vertex array id
+        GL.glBindVertexArray(self.glid)      # activate to receive state below
+        self.buffers = GL.glGenBuffers(3)    # create buffer for position attrib
+
+        # create position attribute, send to GPU, declare type & per-vertex size
+        loc = GL.glGetAttribLocation(shader.glid, 'position')
+        GL.glEnableVertexAttribArray(loc)    # assign to position attribute
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.buffers[0])
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, position, GL.GL_STATIC_DRAW)
+        GL.glVertexAttribPointer(loc, 3, GL.GL_FLOAT, False, 0, None)
+
+        # create color attribute, send to GPU, declare type & per-vertex size
+        loc = GL.glGetAttribLocation(shader.glid, 'color')
+        GL.glEnableVertexAttribArray(loc)    # assign to color
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.buffers[1])
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, color, GL.GL_STATIC_DRAW)
+        GL.glVertexAttribPointer(loc, 3, GL.GL_FLOAT, False, 0, None)
+
+        # create a dedicated index buffer, copy python array to GPU
+        GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, self.buffers[2])
+        GL.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, self.index,
+                        GL.GL_STATIC_DRAW)
+
+    def draw(self, projection, view, **_args):
+        GL.glUseProgram(self.shader.glid)
+
+        loc = GL.glGetUniformLocation(self.shader.glid, 'view')
+        GL.glUniformMatrix4fv(loc, 1, True, view)
+
+        loc = GL.glGetUniformLocation(self.shader.glid, 'projection')
+        GL.glUniformMatrix4fv(loc, 1, True, projection)
+
+        # draw triangle as GL_TRIANGLE indexed mode array, pass array size
+        GL.glBindVertexArray(self.glid)
+        GL.glDrawElements(GL.GL_TRIANGLES, self.index.size,
+                          GL.GL_UNSIGNED_INT, None)
+
+    def __del__(self):
+        GL.glDeleteVertexArrays(1, [self.glid])
+        GL.glDeleteBuffers(3, self.buffers)
 
 
 class Cylinder(Node):
@@ -67,13 +122,14 @@ class TexturedPlane(Textured):
 def main():    
     """ create a window, add scene objects, then run rendering loop """
     viewer = Viewer()
-    shader = Shader("shader/color.vert", "shader/color.frag")
-    terrain_shadder = Shader("shader/terrain.vert", "shader/terrain.frag")
+    # shader = Shader("shader/color.vert", "shader/color.frag")
+    normal_shadder = Shader("shader/normal.vert", "shader/normal.frag")
+    # terrain_shadder = Shader("shader/terrain.vert", "shader/terrain.frag")
     
-    if len(sys.argv) != 2:
-        print('Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in'
-              ' format supported by assimp.' % (sys.argv[0],))
-        viewer.add(TexturedPlane(terrain_shadder, "texture/volcano.png"))
+    # viewer.add(TexturedPlane(terrain_shadder, "texture/volcano.png"))
+    
+    viewer.add(Volcano(normal_shadder))
+    
     
 
     # start rendering loop
