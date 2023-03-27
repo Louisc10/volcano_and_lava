@@ -50,7 +50,6 @@ class Volcano:
         top_volcano = np.array((146/255, 104/255, 41/255), 'f')
         bottom_volcano = np.array((146/255, 116/255, 91/255), 'f')
 
-        # TODO: this is still a triangle, new values needed for Pyramid
         position = np.array(((0,.2,0), (-.1,.5,-.3), (-.3,.5,-.1), (-.3,.5,.1), (-.1,.5,.3), (.1,.5,.3), (.3,.5,.1), (.3,.5,-.1), (.1,.5,-.3), (-.2,0,-.7), (-.4,0,-.6), (-.6,0,-.4), (-.7,0,-.2), (-.7,0,0), (-.7,0,.2), (-.6,0,.4), (-.4,0,.6), (-.2,0,.7), (0,0,.7), (.2,0,.7), (.4,0,.6), (.6,0,.4), (.7,0,.2), (.7,0,0), (.7,0,-.2), (.6,0,-.4), (.4,0,-.6), (.2,0,-.7), (0,0,-.7)), 'f')
         
         color = np.array(((0, 0, 0), top_volcano, top_volcano, top_volcano, top_volcano, top_volcano, top_volcano, top_volcano, top_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano, bottom_volcano), 'f')
@@ -98,7 +97,6 @@ class Volcano:
         GL.glDeleteVertexArrays(1, [self.glid])
         GL.glDeleteBuffers(3, self.buffers)
 
-
 class Cylinder(Node):
     """ Very simple cylinder based on provided load function """
     def __init__(self, shader):
@@ -109,15 +107,15 @@ class TexturedPlane(Textured):
     """ Simple multi-textured object """
     def __init__(self, shader, tex_file):        
         # setup plane mesh to be textured
-        base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
-        scaled = 100 * np.array(base_coords, np.float32)
-        indices = np.array((0, 1, 2, 0, 2, 3), np.uint32) 
+        base_coords = ((-1, 0, -1), (1, 0, -1), (1, 0, 1), (-1, 0, 1))
+        scaled = 10 * np.array(base_coords, np.float32)
+        indices = np.array((1, 0, 2, 2, 0, 3), np.uint32) 
         mesh = Mesh(shader, attributes=dict(position=scaled), index=indices)
 
         # setup & upload two textures to GPU
         texture = Texture(tex_file)
         super().__init__(mesh, diffuse_map=texture)
-        
+              
 # -------------- main program and scene setup --------------------------------
 def main():    
     """ create a window, add scene objects, then run rendering loop """
@@ -128,7 +126,8 @@ def main():
     
     # viewer.add(TexturedPlane(terrain_shadder, "texture/volcano.png"))
     
-    viewer.add(Volcano(normal_shadder))
+    # viewer.add(Volcano(normal_shadder))
+    viewer.add(GridTerrain(normal_shadder))
     
     
 
