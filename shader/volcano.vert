@@ -14,7 +14,7 @@ out vec3 fragment_color;
 float randomHeight(vec3 position, float maxHeight){
     float height = sqrt(pow(position.x,2) + pow(position.z,2));
     if(height < maxHeight-2)
-        return mod(height,maxHeight)-1;
+        return mod(height,maxHeight);
     if(height < maxHeight*2)
         return maxHeight-height;
     // else
@@ -25,7 +25,7 @@ float randomHeight(vec3 position, float maxHeight){
 void main() {
     // initialize interpolated colors at vertices
     fragment_color = color;
-    float maxHeight = 4.5;
+    float maxHeight = 4;
 
     // tell OpenGL how to transform the vertex to clip coordinates
     float newHeight = randomHeight(position, maxHeight);

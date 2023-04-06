@@ -118,7 +118,7 @@ class TexturedPlane(Textured):
         super().__init__(mesh, diffuse_map=texture)
 
 class GridTerrain:    
-    def __init__(self, shader, total_row=200, total_col=200, ratio=1/10):
+    def __init__(self, shader, total_row=500, total_col=500, ratio=1/30):
         self.shader = shader
         
         position = [] #np.array((),'f')
@@ -129,7 +129,6 @@ class GridTerrain:
         for i in range(total_row):
             for j in range(total_col):
                 x = ((i-(total_row/2)) * ratio)
-                # y = self.rand_pos(0)
                 y = 0
                 z = ((j-(total_col/2)) * ratio)
                 position.append([x, y, z])
@@ -200,13 +199,13 @@ def main():
     viewer = Viewer()
     shader = Shader("shader/color.vert", "shader/color.frag")
     normal_shadder = Shader("shader/normal.vert", "shader/normal.frag")
-    animation_shadder = Shader("shader/animation.vert", "shader/animation.frag")
+    volcano_shadder = Shader("shader/volcano.vert", "shader/volcano.frag")
     terrain_shadder = Shader("shader/terrain.vert", "shader/terrain.frag")
     
     # viewer.add(TexturedPlane(terrain_shadder, "texture/volcano.png"))
     
     # viewer.add(Volcano(normal_shadder))
-    viewer.add(GridTerrain(animation_shadder))
+    viewer.add(GridTerrain(volcano_shadder))
     
     
 
