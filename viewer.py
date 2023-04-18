@@ -10,6 +10,7 @@ import OpenGL.GL as GL              # standard Python OpenGL wrapper
 import numpy as np                  # all matrix manipulations & OpenGL args
 import glfw                         # lean window system wrapper for OpenGL
 import random                       # starndard Python random
+import math
 
 from core import Shader, Mesh, Viewer, Node, load
 from transform import translate, identity, rotate, scale, vec, quaternion, quaternion_matrix, quaternion_from_euler, quaternion_slerp
@@ -106,15 +107,15 @@ class Cylinder(Node):
 
 class TexturedPlane(Textured):
     """ Simple multi-textured object """
-    def __init__(self, shader, tex_file):        
+    def __init__(self, shader, tex_file, base_coords):        
         # setup plane mesh to be textured
-        base_coords = ((-1, 0, -1), (1, 0, -1), (1, 0, 1), (-1, 0, 1))
-        scaled = 10 * np.array(base_coords, np.float32)
-        indices = np.array((1, 0, 2, 2, 0, 3), np.uint32) 
+        # base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
+        scaled = np.array(base_coords, np.float32)
+        indices = np.array((0, 1, 2, 3, 4, 5), np.uint32)
         mesh = Mesh(shader, attributes=dict(position=scaled), index=indices)
 
-        # setup & upload two textures to GPU
-        texture = Texture(tex_file)
+        # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
+        texture = Texture(tex_file, GL.GL_CLAMP_TO_BORDER, GL.GL_LINEAR)
         super().__init__(mesh, diffuse_map=texture)
 
 class GridTerrain:    
@@ -125,6 +126,10 @@ class GridTerrain:
         color = [] #np.array((),'f')
         index = []
         
+        top_volcano = np.array((146/255, 104/255, 41/255), 'f')
+        bottom_volcano = np.array((146/255, 116/255, 91/255), 'f')
+        shade_rock = np.array((90/255, 77/255, 65/255), 'f')
+        dark_shade = np.array((58/255, 50/255, 42/255), 'f')
         #initialize the positon of the node
         for i in range(total_row):
             for j in range(total_col):
@@ -132,7 +137,17 @@ class GridTerrain:
                 y = 0
                 z = ((j-(total_col/2)) * ratio)
                 position.append([x, y, z])
-                color.append([random.random(),random.random(),random.random()])
+                
+                temp = random.randrange(0,10)
+                if temp < 5:
+                    color.append([top_volcano, top_volcano, top_volcano])
+                elif temp < 8:
+                    color.append([bottom_volcano, bottom_volcano, bottom_volcano])
+                elif temp < 9:
+                    color.append([shade_rock, shade_rock, shade_rock])
+                else:
+                    color.append([dark_shade,dark_shade,dark_shade])
+                    # color.append([random.random(),random.random(),random.random()])
                 
         #creating the terain
         for i in range(total_row - 1):
@@ -192,7 +207,7 @@ class GridTerrain:
         x = random.randrange(-range/2, range/2) * ratio
         return (position + x)
                
-      
+              
 # -------------- main program and scene setup --------------------------------
 def main():    
     """ create a window, add scene objects, then run rendering loop """
@@ -200,13 +215,30 @@ def main():
     shader = Shader("shader/color.vert", "shader/color.frag")
     normal_shadder = Shader("shader/normal.vert", "shader/normal.frag")
     volcano_shadder = Shader("shader/volcano.vert", "shader/volcano.frag")
-    terrain_shadder = Shader("shader/terrain.vert", "shader/terrain.frag")
+    skybox_shadder = Shader("shader/skybox.vert", "shader/skybox.frag")
     
-    # viewer.add(TexturedPlane(terrain_shadder, "texture/volcano.png"))
+    skyboxVertices = ((-1,-1,-1),(1,-1,-1),(1,-1,1),(-1,-1,1),(-1,1,-1),(1,1,-1),(1,1,1),(-1,1,1))
+    skyboxIndices = ((1,2,6,6,5,1),(0,4,7,7,3,0),(4,5,6,6,7,4),(0,3,2,2,1,0),(0,1,5,5,4,0),(3,7,6,6,2,3))
+    skyboxFaces = ("texture/LarnacaBeach/posx.jpg","texture/LarnacaBeach/negx.jpg","texture/LarnacaBeach/posy.jpg","texture/LarnacaBeach/negy.jpg","texture/LarnacaBeach/negz.jpg","texture/LarnacaBeach/posz.jpg",)
+    skyboxPos = (GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+    # base_coords = ((-1, 0, -1), (1, 0, -1), (1, 0, 1), (-1, 0, 1))
     
     # viewer.add(Volcano(normal_shadder))
     viewer.add(GridTerrain(volcano_shadder))
     
+    skyboxTexture = SkyBoxMaterial("texture/LarnacaBeach")
+    
+    # GL.glUseProgram(skybox_shadder)
+    # GL.glUniformMatrix4fv(GL.glGetUniformLocation(skybox_shadder, "projection"), 1, GL.GL_FALSE, projection_transform)
+    # GL.glUniform1i(GL.glGetUniformLocation(skybox_shadder, "skyBox"), 0)
+     
+    # for x in range(6):
+    #     temp = []
+    #     foo = skyboxIndices[x]
+    #     for i in range(6):
+    #         temp.append(skyboxVertices[foo[i]])
+    #     side = math.floor(x/2)
+        # viewer.add(SkyBox(skybox_shadder, skyboxFaces[x], temp, skyboxPos[x], side))
     
 
     # start rendering loop

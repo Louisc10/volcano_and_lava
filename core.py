@@ -367,6 +367,7 @@ class Viewer(Node):
         GL.glClearColor(0.1, 0.1, 0.1, 0.1)
         GL.glEnable(GL.GL_CULL_FACE)   # backface culling enabled (TP2)
         GL.glEnable(GL.GL_DEPTH_TEST)  # depth test now enabled (TP2)
+        # GL.glDepthFunc(GL.GL_LEQUAL)
 
         # cyclic iterator to easily toggle polygon rendering modes
         self.fill_modes = cycle([GL.GL_LINE, GL.GL_POINT, GL.GL_FILL])
