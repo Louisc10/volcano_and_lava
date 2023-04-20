@@ -262,22 +262,16 @@ def main():
     shader = Shader("shader/color.vert", "shader/color.frag")
     normal_shadder = Shader("shader/normal.vert", "shader/normal.frag")
     volcano_shadder = Shader("shader/volcano.vert", "shader/volcano.frag")
-    wood_shadder = Shader("shader/texture.vert", "shader/texture.frag")
-    leaf_shadder = Shader("shader/texture.vert", "shader/texture.frag")
+    texture_shadder = Shader("shader/texture.vert", "shader/texture.frag")
     # skybox_shadder = Shader("shader/skybox.vert", "shader/skybox.frag")
     
-    base_coords = ((-1,-1,-1),(1,-1,-1),(1,-1,1),(-1,-1,1),(-1,1,-1),(1,1,-1),(1,1,1),(-1,1,1))
-    indices =  ((1,2,6,6,5,1), (0,4,7,7,3,0), (4,5,6,6,7,4), (0,3,2,2,1,0), (0,1,5,5,4,0), (3,7,6,6,2,3))
+    skyboxIndices =  ((1,2,6,6,5,1), (0,4,7,7,3,0), (4,5,6,6,7,4), (0,3,2,2,1,0), (0,1,5,5,4,0), (3,7,6,6,2,3))
     skyboxFaces = ("texture/LarnacaBeach/posx.jpg","texture/LarnacaBeach/negx.jpg","texture/LarnacaBeach/posy.jpg","texture/LarnacaBeach/negy.jpg","texture/LarnacaBeach/negz.jpg","texture/LarnacaBeach/posz.jpg",)
     skyboxPos = (GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
-    # base_coords = ((-1, 0, -1), (1, 0, -1), (1, 0, 1), (-1, 0, 1))
     
-    # viewer.add(Volcano(normal_shadder))
+    viewer.add(Volcano(normal_shadder))
     viewer.add(GridTerrain(volcano_shadder))
     
-    
-    # skyboxTexture = SkyBoxMaterial("texture/LarnacaBeach")
-    # viewer.add(CubeMap(skyboxTexture))
     for _ in range(100):
         while True:
             x = random.randrange(-100,100)/10
@@ -286,10 +280,13 @@ def main():
             if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
                 break
         
-        Tree(viewer, shader, leaf_shadder, x,z)
+        Tree(viewer, shader, texture_shadder, x,z)
     
     for x in range(6):
-        viewer.add(TexturedPlane(leaf_shadder, skyboxFaces[x], indices[x]))
+        viewer.add(TexturedPlane(texture_shadder, skyboxFaces[x], skyboxIndices[x]))
+    
+    # skyboxTexture = SkyBoxMaterial("texture/LarnacaBeach")
+    # viewer.add(CubeMap(skyboxTexture))
 
     # start rendering loop
     viewer.run()

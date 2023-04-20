@@ -172,12 +172,14 @@ def quaternion_slerp(q0, q1, fraction):
 
     return q0*math.cos(theta) + q2*math.sin(theta)
 
+def clamp(num, min_value, max_value):
+    return max(min(num, max_value), min_value)
 
 # a trackball class based on provided quaternion functions -------------------
 class Trackball:
     """Virtual trackball for 3D scene viewing. Independent of window system."""
 
-    def __init__(self, yaw=0., roll=0., pitch=0., distance=3., radians=None):
+    def __init__(self, yaw=0., roll=0., pitch=0., distance=10., radians=None):
         """ Build a new trackball with specified view, angles in degrees """
         self.rotation = quaternion_from_euler(yaw, roll, pitch, radians)
         self.distance = max(distance, 0.001)
@@ -190,11 +192,14 @@ class Trackball:
 
     def zoom(self, delta, size):
         """ Zoom trackball by a factor delta normalized by window size """
-        self.distance = max(0.001, self.distance * (1 - 50*delta/size))
+        self.distance = min(max(0.001, self.distance * (1 - 50*delta/size)),50)
 
     def pan(self, old, new):
         """ Pan in camera's reference by a 2d vector factor of (new - old) """
+        print(self.pos2d)
         self.pos2d += (vec(new) - old) * 0.001 * self.distance
+        self.pos2d[0] = clamp( self.pos2d[0], -30, 30)
+        self.pos2d[1] = clamp( self.pos2d[1], -15, 15)
 
     def view_matrix(self):
         """ View matrix transformation, including distance to target point """
