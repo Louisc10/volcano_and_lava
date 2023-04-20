@@ -274,10 +274,6 @@ class GridTerrain:
     def __del__(self):
         GL.glDeleteVertexArrays(1, [self.glid])
         GL.glDeleteBuffers(3, self.buffers)
-    
-    def rand_pos(self, position, range = 50, ratio = 1/100):
-        x = random.randrange(-range/2, range/2) * ratio
-        return (position + x)
                
               
 # -------------- main program and scene setup --------------------------------
@@ -288,26 +284,23 @@ def main():
     normal_shadder = Shader("shader/normal.vert", "shader/normal.frag")
     volcano_shadder = Shader("shader/volcano.vert", "shader/volcano.frag")
     texture_shadder = Shader("shader/texture.vert", "shader/texture.frag")
-    # skybox_shadder = Shader("shader/skybox.vert", "shader/skybox.frag")
     
-    skyboxPos = (GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
     
     viewer.add(Volcano(normal_shadder))
     viewer.add(GridTerrain(volcano_shadder))
     
-    # for _ in range(100):
-    #     while True:
-    #         x = random.randrange(-100,100)/10
-    #         z = random.randrange(-100,100)/10
+    for _ in range(100):
+        while True:
+            x = random.randrange(-100,100)/10
+            z = random.randrange(-100,100)/10
             
-    #         if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
-    #             break
+            if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
+                break
         
-    #     Tree(viewer, texture_shadder, x,z)
+        Tree(viewer, texture_shadder, x,z)
     
     for x in range(6):
         viewer.add(SkyTexturedPlane(texture_shadder, x))
-    # viewer.add(SkyTexturedPlane(texture_shadder, 2))
 
     # start rendering loop
     viewer.run()
