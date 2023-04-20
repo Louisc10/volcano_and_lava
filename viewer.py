@@ -111,10 +111,15 @@ class Leaf(Node):
         self.add(*load('model/cube.obj', shader))
         
 class Tree:
-    def __init__(self, viewer, shader1, shader2, x = 0, z = 0):
+    def __init__(self, viewer, shader, x = 0, z = 0):
+        
+        translate_keys = {0: vec(0, 0, 0), 2: vec(0, 0.2, 0), 4: vec(0, 0, 0)}
+        rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, 45, 0), 4: quaternion()}
+        scale_keys = {0: 1, 2: 1.2, 4: 1}
     
-        cylinder = Cylinder(shader2)
-        leaf = Leaf(shader2)    
+        cylinder = Cylinder(shader)
+        leaf = KeyFrameControlNode(translate_keys, rotate_keys, scale_keys)
+        leaf.add(Leaf(shader))
         
         base = Node(transform=scale(0.2,0.5,0.2))
         base.add(cylinder)
@@ -122,19 +127,19 @@ class Tree:
         leaves1 = Node(transform=rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5) )
         leaves1.add(leaf)
         
-        leaves2 = Node(transform=translate(0.45,0,0) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves2 = Node(transform=translate(0.45,0,0) @ rotate((0,1,1), 90) @ scale(x=0.5, y=0.5, z=0.5))
         leaves2.add(leaf)
         
-        leaves3 = Node(transform=translate(-0.45,0,0) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves3 = Node(transform=translate(-0.45,0,0) @ rotate((0,1,1), 180) @ scale(x=0.5, y=0.5, z=0.5))
         leaves3.add(leaf)
         
-        leaves4 = Node(transform=translate(0,0,0.45) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves4 = Node(transform=translate(0,0,0.45) @ rotate((0,1,1), 270) @ scale(x=0.5, y=0.5, z=0.5))
         leaves4.add(leaf)
         
-        leaves5 = Node(transform=translate(0,0,-0.45) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves5 = Node(transform=translate(0,0,-0.45) @ rotate((0,1,1), 360) @ scale(x=0.5, y=0.5, z=0.5))
         leaves5.add(leaf)
         
-        leaves6 = Node(transform=translate(0,0,0) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves6 = Node(transform=translate(0,0,0) @ scale(x=0.5, y=0.5, z=0.5))
         leaves6.add(leaf)
         
         t_leaves1 = Node(transform=translate(0,0.35,0))
@@ -280,7 +285,7 @@ def main():
             if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
                 break
         
-        Tree(viewer, shader, texture_shadder, x,z)
+        Tree(viewer, texture_shadder, x,z)
     
     for x in range(6):
         viewer.add(TexturedPlane(texture_shadder, skyboxFaces[x], skyboxIndices[x]))

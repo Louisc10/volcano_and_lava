@@ -26,6 +26,7 @@ class KeyFrames:
 
         # 1. ensure time is within bounds else return boundary keyframe
         ...
+        time = time % max(self.times)
         if time < self.times[0]:
             return self.values[0]
         elif time > self.times[-1]:
