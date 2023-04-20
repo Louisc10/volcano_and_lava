@@ -113,7 +113,7 @@ class Leaf(Node):
 class Tree:
     def __init__(self, viewer, shader1, shader2, x = 0, z = 0):
     
-        cylinder = Cylinder(shader1)
+        cylinder = Cylinder(shader2)
         leaf = Leaf(shader2)    
         
         base = Node(transform=scale(0.2,0.5,0.2))
@@ -287,6 +287,9 @@ def main():
                 break
         
         Tree(viewer, shader, leaf_shadder, x,z)
+    
+    for x in range(6):
+        viewer.add(TexturedPlane(leaf_shadder, skyboxFaces[x], indices[x]))
 
     # start rendering loop
     viewer.run()

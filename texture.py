@@ -1,5 +1,7 @@
 import OpenGL.GL as GL              # standard Python OpenGL wrapper
 from PIL import Image               # load texture maps
+import OpenGL.GL as GL              # standard Python OpenGL wrapper
+from PIL import Image               # load texture maps
 
 
 # -------------- OpenGL Texture Wrapper ---------------------------------------
@@ -8,7 +10,7 @@ class Texture:
     def __init__(self, tex_file, #Filename that will be loaded
                  wrap_mode=GL.GL_REPEAT, #Repeat, Mirror, Clamp_to_border, Clamp_to_edge
                  mag_filter=GL.GL_LINEAR, #Linear, Nearest
-                 min_filter=GL.GL_LINEAR, # Linear, Nearest, Nearest_Mipmap_Nearest, Nearest_Mipmap_Linear, Linear_Mipmap_Nearest, Linear_Mipmap_Linear
+                 min_filter=GL.GL_LINEAR_MIPMAP_LINEAR, # Linear, Nearest, Nearest_Mipmap_Nearest, Nearest_Mipmap_Linear, Linear_Mipmap_Nearest, Linear_Mipmap_Linear
                  tex_type=GL.GL_TEXTURE_2D):
         self.glid = GL.glGenTextures(1)
         self.type = tex_type
@@ -47,7 +49,6 @@ class Textured:
             GL.glBindTexture(texture.type, texture.glid)
             uniforms[name] = index
         self.drawable.draw(primitives=primitives, **uniforms)
-        
 
 class SkyBoxMaterial:
     def __init__(self, filepath):

@@ -1,6 +1,8 @@
 # Blender v2.77 (sub 0) OBJ File: ''
 # www.blender.org
 o Cylinder
+mtllib cube.mtl
+usemtl wood
 
 v 0.000000 -1.000000 -1.000000
 v 0.000000 1.000000 -1.000000

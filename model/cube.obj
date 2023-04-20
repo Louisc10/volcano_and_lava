@@ -2,7 +2,7 @@
 #
 
 o cube
-mtllib material.mtl
+mtllib cube.mtl
 
 v -0.500000 -0.500000 0.500000
 v 0.500000 -0.500000 0.500000
