@@ -6,8 +6,7 @@ from PIL import Image               # load texture maps
 class Texture:
     """ Helper class to create and automatically destroy textures """
     def __init__(self, tex_file, #Filename that will be loaded
-                 side,
-                 wrap_mode=GL.GL_CLAMP_TO_EDGE, #Repeat, Mirror, Clamp_to_border, Clamp_to_edge
+                 wrap_mode=GL.GL_REPEAT, #Repeat, Mirror, Clamp_to_border, Clamp_to_edge
                  mag_filter=GL.GL_LINEAR, #Linear, Nearest
                  min_filter=GL.GL_LINEAR, # Linear, Nearest, Nearest_Mipmap_Nearest, Nearest_Mipmap_Linear, Linear_Mipmap_Nearest, Linear_Mipmap_Linear
                  tex_type=GL.GL_TEXTURE_2D):
@@ -16,10 +15,6 @@ class Texture:
         try:
             # imports image as a numpy array in exactly right format
             tex = Image.open(tex_file).convert('RGBA') #load the file in the GPU
-            if side == 1:
-                tex = tex.transpose(Image.FLIP_LEFT_RIGHT)
-            else:
-                tex = tex.transpose(Image.FLIP_TOP_BOTTOM)
             GL.glBindTexture(tex_type, self.glid)
             GL.glTexImage2D(tex_type, 0, GL.GL_RGBA, tex.width, tex.height,
                             0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex.tobytes())
@@ -42,7 +37,7 @@ class Texture:
 # -------------- Textured mesh decorator --------------------------------------
 class Textured:
     """ Drawable mesh decorator that activates and binds OpenGL textures """
-    def __init__(self, drawable, side, **textures):
+    def __init__(self, drawable, **textures):
         self.drawable = drawable
         self.textures = textures
 

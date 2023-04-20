@@ -103,20 +103,67 @@ class Cylinder(Node):
     """ Very simple cylinder based on provided load function """
     def __init__(self, shader):
         super().__init__()
-        self.add(*load('cylinder.obj', shader))  # just load cylinder from file
+        self.add(*load('model/cylinder.obj', shader))  # just load cylinder from file
+        
+class Leaf(Node):
+    def __init__(self, shader):
+        super().__init__()
+        self.add(*load('model/cube.obj', shader))
+        
+class Tree:
+    def __init__(self, viewer, shader1, shader2, x = 0, z = 0):
+    
+        cylinder = Cylinder(shader1)
+        leaf = Leaf(shader2)    
+        
+        base = Node(transform=scale(0.2,0.5,0.2))
+        base.add(cylinder)
+        
+        leaves1 = Node(transform=rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5) )
+        leaves1.add(leaf)
+        
+        leaves2 = Node(transform=translate(0.45,0,0) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves2.add(leaf)
+        
+        leaves3 = Node(transform=translate(-0.45,0,0) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves3.add(leaf)
+        
+        leaves4 = Node(transform=translate(0,0,0.45) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves4.add(leaf)
+        
+        leaves5 = Node(transform=translate(0,0,-0.45) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves5.add(leaf)
+        
+        leaves6 = Node(transform=translate(0,0,0) @ rotate((1,0,0), 90) @ scale(x=0.5, y=0.5, z=0.5))
+        leaves6.add(leaf)
+        
+        t_leaves1 = Node(transform=translate(0,0.35,0))
+        t_leaves1.add(leaves1)
+        
+        t_leaves2 = Node(transform=translate(0,0.4,0))
+        t_leaves2.add(t_leaves1, leaves2, leaves3, leaves4, leaves5, leaves6)
+        
+        t_base = Node(transform=translate(x,-3.5,z) @ rotate((0,1,0), random.randrange(0,360)))
+        t_base.add(base, t_leaves2)
+        
+        viewer.add(t_base)
 
 class TexturedPlane(Textured):
     """ Simple multi-textured object """
-    def __init__(self, shader, tex_file, base_coords):        
+    def __init__(self, shader, tex_file, indices):        
+        self.wrap, self.filter = GL.GL_CLAMP_TO_EDGE, (GL.GL_LINEAR, GL.GL_LINEAR)
+        self.file = tex_file
+
         # setup plane mesh to be textured
-        # base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
-        scaled = np.array(base_coords, np.float32)
-        indices = np.array((0, 1, 2, 3, 4, 5), np.uint32)
+        base_coords = ((-1,-1,-1),(1,-1,-1),(1,-1,1),(-1,-1,1),(-1,1,-1),(1,1,-1),(1,1,1),(-1,1,1))
+        scaled = 100 * np.array(base_coords, np.float32)
+        indices = np.array(indices, np.uint32)
         mesh = Mesh(shader, attributes=dict(position=scaled), index=indices)
 
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
-        texture = Texture(tex_file, GL.GL_CLAMP_TO_BORDER, GL.GL_LINEAR)
+        texture = Texture(tex_file, self.wrap, *self.filter)
         super().__init__(mesh, diffuse_map=texture)
+
 
 class GridTerrain:    
     def __init__(self, shader, total_row=500, total_col=500, ratio=1/30):
@@ -215,10 +262,12 @@ def main():
     shader = Shader("shader/color.vert", "shader/color.frag")
     normal_shadder = Shader("shader/normal.vert", "shader/normal.frag")
     volcano_shadder = Shader("shader/volcano.vert", "shader/volcano.frag")
-    skybox_shadder = Shader("shader/skybox.vert", "shader/skybox.frag")
+    wood_shadder = Shader("shader/texture.vert", "shader/texture.frag")
+    leaf_shadder = Shader("shader/texture.vert", "shader/texture.frag")
+    # skybox_shadder = Shader("shader/skybox.vert", "shader/skybox.frag")
     
-    skyboxVertices = ((-1,-1,-1),(1,-1,-1),(1,-1,1),(-1,-1,1),(-1,1,-1),(1,1,-1),(1,1,1),(-1,1,1))
-    skyboxIndices = ((1,2,6,6,5,1),(0,4,7,7,3,0),(4,5,6,6,7,4),(0,3,2,2,1,0),(0,1,5,5,4,0),(3,7,6,6,2,3))
+    base_coords = ((-1,-1,-1),(1,-1,-1),(1,-1,1),(-1,-1,1),(-1,1,-1),(1,1,-1),(1,1,1),(-1,1,1))
+    indices =  ((1,2,6,6,5,1), (0,4,7,7,3,0), (4,5,6,6,7,4), (0,3,2,2,1,0), (0,1,5,5,4,0), (3,7,6,6,2,3))
     skyboxFaces = ("texture/LarnacaBeach/posx.jpg","texture/LarnacaBeach/negx.jpg","texture/LarnacaBeach/posy.jpg","texture/LarnacaBeach/negy.jpg","texture/LarnacaBeach/negz.jpg","texture/LarnacaBeach/posz.jpg",)
     skyboxPos = (GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
     # base_coords = ((-1, 0, -1), (1, 0, -1), (1, 0, 1), (-1, 0, 1))
@@ -226,20 +275,18 @@ def main():
     # viewer.add(Volcano(normal_shadder))
     viewer.add(GridTerrain(volcano_shadder))
     
-    skyboxTexture = SkyBoxMaterial("texture/LarnacaBeach")
     
-    # GL.glUseProgram(skybox_shadder)
-    # GL.glUniformMatrix4fv(GL.glGetUniformLocation(skybox_shadder, "projection"), 1, GL.GL_FALSE, projection_transform)
-    # GL.glUniform1i(GL.glGetUniformLocation(skybox_shadder, "skyBox"), 0)
-     
-    # for x in range(6):
-    #     temp = []
-    #     foo = skyboxIndices[x]
-    #     for i in range(6):
-    #         temp.append(skyboxVertices[foo[i]])
-    #     side = math.floor(x/2)
-        # viewer.add(SkyBox(skybox_shadder, skyboxFaces[x], temp, skyboxPos[x], side))
-    
+    # skyboxTexture = SkyBoxMaterial("texture/LarnacaBeach")
+    # viewer.add(CubeMap(skyboxTexture))
+    for _ in range(100):
+        while True:
+            x = random.randrange(-100,100)/10
+            z = random.randrange(-100,100)/10
+            
+            if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
+                break
+        
+        Tree(viewer, shader, leaf_shadder, x,z)
 
     # start rendering loop
     viewer.run()
