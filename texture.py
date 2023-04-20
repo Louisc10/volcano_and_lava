@@ -54,8 +54,8 @@ class Textured:
 class SkyTexture:
     """ Helper class to create and automatically destroy textures """
     def __init__(self, tex_file, #Filename that will be loaded
-                 width, height,
-                 wrap_mode=GL.GL_CLAMP_TO_EDGE, #Repeat, Mirror, Clamp_to_border, Clamp_to_edge
+                 index,
+                 wrap_mode=GL.GL_REPEAT, #Repeat, Mirror, Clamp_to_border, Clamp_to_edge
                  mag_filter=GL.GL_LINEAR, #Linear, Nearest
                  min_filter=GL.GL_LINEAR_MIPMAP_LINEAR, # Linear, Nearest, Nearest_Mipmap_Nearest, Nearest_Mipmap_Linear, Linear_Mipmap_Nearest, Linear_Mipmap_Linear
                  tex_type=GL.GL_TEXTURE_2D):
@@ -64,8 +64,24 @@ class SkyTexture:
         try:
             # imports image as a numpy array in exactly right format
             tex = Image.open(tex_file).convert('RGBA') #load the file in the GPU
+            
+            angle = 0
+            if index <= 2:
+                angle = -90
+            elif index > 3:
+                angle = 180
+            elif index == 3:
+                angle = 90
+            tex = tex.rotate(angle)
+            
+            
+            if index == 1 or index == 2:
+                tex = tex.transpose(1)
+            if index == 4:
+                tex = tex.transpose(0)
+                
             GL.glBindTexture(tex_type, self.glid)
-            GL.glTexImage2D(tex_type, 0, GL.GL_RGBA, width, height,
+            GL.glTexImage2D(tex_type, 0, GL.GL_RGBA, tex.width, tex.height,
                             0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex.tobytes())
             GL.glTexParameteri(tex_type, GL.GL_TEXTURE_WRAP_S, wrap_mode) #What we do wehen we out of bound (Horizontally)
             GL.glTexParameteri(tex_type, GL.GL_TEXTURE_WRAP_T, wrap_mode) #What we do wehen we out of bound (Vertically)
@@ -78,58 +94,6 @@ class SkyTexture:
                   f' mag={str(mag_filter).split()[0]})')
         except FileNotFoundError:
             print("ERROR: unable to load texture file %s" % tex_file)
-
-    def __del__(self):  # delete GL texture from GPU when object dies
-        GL.glDeleteTextures(self.glid)
-
-class SkyBoxMaterial:
-    def __init__(self, filepath):
-        tex_type=GL.GL_TEXTURE_CUBE_MAP
-        wrap_mode=GL.GL_CLAMP_TO_EDGE #Repeat, Mirror, Clamp_to_border, Clamp_to_edge
-        min_filter=GL.GL_NEAREST # Linear, Nearest, Nearest_Mipmap_Nearest, Nearest_Mipmap_Linear, Linear_Mipmap_Nearest, Linear_Mipmap_Linear
-        mag_filter=GL.GL_LINEAR #Linear, Nearest
-        
-        self.glid = GL.glGenTextures(1)
-        self.type = tex_type
-        try:
-            GL.glBindTexture(tex_type, self.glid)
-            GL.glTexParameteri(tex_type, GL.GL_TEXTURE_WRAP_S, wrap_mode) #What we do wehen we out of bound (Horizontally)
-            GL.glTexParameteri(tex_type, GL.GL_TEXTURE_WRAP_T, wrap_mode) #What we do wehen we out of bound (Vertically)
-            GL.glTexParameteri(tex_type, GL.GL_TEXTURE_WRAP_R, wrap_mode) #What we do wehen we out of bound (Vertically)
-            GL.glTexParameteri(tex_type, GL.GL_TEXTURE_MIN_FILTER, min_filter) #What we do in minification
-            GL.glTexParameteri(tex_type, GL.GL_TEXTURE_MAG_FILTER, mag_filter) #what we do in magnigication
-
-            # imports image as a numpy array in exactly right format
-            tex = Image.open("{filepath}/negx.jpg").convert('RGBA') #load the file in the GPU
-            GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL.GL_RGBA, tex.width, tex.height,
-                            0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex.tobytes())
-
-            tex = Image.open("{filepath}/negy.jpg").convert('RGBA') #load the file in the GPU
-            GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL.GL_RGBA, tex.width, tex.height,
-                            0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex.tobytes())
-
-            tex = Image.open("{filepath}/negz.jpg").convert('RGBA') #load the file in the GPU
-            GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL.GL_RGBA, tex.width, tex.height,
-                            0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex.tobytes())
-
-            tex = Image.open("{filepath}/posx.jpg").convert('RGBA') #load the file in the GPU
-            GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL.GL_RGBA, tex.width, tex.height,
-                            0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex.tobytes())
-
-            tex = Image.open("{filepath}/posy.jpg").convert('RGBA') #load the file in the GPU
-            GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL.GL_RGBA, tex.width, tex.height,
-                            0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex.tobytes())
-
-            tex = Image.open("{filepath}/posz.jpg").convert('RGBA') #load the file in the GPU
-            GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL.GL_RGBA, tex.width, tex.height,
-                            0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex.tobytes())
-
-            print(f'Loaded texture from {filepath} ({tex.width}x{tex.height}'
-                  f' wrap={str(wrap_mode).split()[0]}'
-                  f' min={str(min_filter).split()[0]}'
-                  f' mag={str(mag_filter).split()[0]})')
-        except FileNotFoundError:
-            print("ERROR: unable to load texture file %s" % filepath)
 
     def __del__(self):  # delete GL texture from GPU when object dies
         GL.glDeleteTextures(self.glid)

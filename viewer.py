@@ -153,20 +153,40 @@ class Tree:
         
         viewer.add(t_base)
 
-class TexturedPlane(Textured):
+class SkyTexturedPlane(Textured):
     """ Simple multi-textured object """
-    def __init__(self, shader, tex_file, indices):        
+    def __init__(self, shader, index):        
+        skyboxFaces = (
+            "texture/LarnacaBeach/negz.jpg","texture/LarnacaBeach/posz.jpg","texture/LarnacaBeach/posy.jpg","texture/LarnacaBeach/negy.jpg","texture/LarnacaBeach/posx.jpg","texture/LarnacaBeach/negx.jpg")
+        tex_file = skyboxFaces[index]
+        
         self.wrap, self.filter = GL.GL_CLAMP_TO_EDGE, (GL.GL_LINEAR, GL.GL_LINEAR)
         self.file = tex_file
 
         # setup plane mesh to be textured
         base_coords = ((-1,-1,-1),(1,-1,-1),(1,-1,1),(-1,-1,1),(-1,1,-1),(1,1,-1),(1,1,1),(-1,1,1))
+        skyboxIndices =  ((1,2,6,6,5,1), (0,4,7,7,3,0), (4,5,6,6,7,4), (0,3,2,2,1,0), (0,1,5,5,4,0), (3,7,6,6,2,3))
+        
         scaled = 100 * np.array(base_coords, np.float32)
-        indices = np.array(indices, np.uint32)
-        mesh = Mesh(shader, attributes=dict(position=scaled), index=indices)
+        indices = np.array(skyboxIndices[index], np.uint32)
+        
+        
+        # tex_coord = ((0,0,0),(1,0,0),(1,0,1),(0,0,1),(0,1,0),(1,1,0),(1,1,1),(0,1,1))
+        tex_coord_noX = ((0,0),(0,0),(0,1),(0,1),(1,0),(1,0),(1,1),(1,1))
+        tex_coord_noY = ((0,0),(1,0),(1,1),(0,1),(0,0),(1,0),(1,1),(0,1))
+        tex_coord_noZ = ((0,0),(1,0),(1,0),(0,0),(0,1),(1,1),(1,1),(0,1))
+        
+        if index < 2:
+            tex_coord = tex_coord_noX
+        elif index < 4:
+            tex_coord = tex_coord_noY
+        else:
+            tex_coord = tex_coord_noZ
+        
+        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord =tex_coord), index=indices)
 
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
-        texture = Texture(tex_file, self.wrap, *self.filter)
+        texture = SkyTexture(tex_file, index, self.wrap, *self.filter)
         super().__init__(mesh, diffuse_map=texture)
 
 
@@ -270,28 +290,24 @@ def main():
     texture_shadder = Shader("shader/texture.vert", "shader/texture.frag")
     # skybox_shadder = Shader("shader/skybox.vert", "shader/skybox.frag")
     
-    skyboxIndices =  ((1,2,6,6,5,1), (0,4,7,7,3,0), (4,5,6,6,7,4), (0,3,2,2,1,0), (0,1,5,5,4,0), (3,7,6,6,2,3))
-    skyboxFaces = ("texture/LarnacaBeach/posx.jpg","texture/LarnacaBeach/negx.jpg","texture/LarnacaBeach/posy.jpg","texture/LarnacaBeach/negy.jpg","texture/LarnacaBeach/negz.jpg","texture/LarnacaBeach/posz.jpg",)
-    skyboxPos = (GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+    skyboxPos = (GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
     
     viewer.add(Volcano(normal_shadder))
     viewer.add(GridTerrain(volcano_shadder))
     
-    for _ in range(100):
-        while True:
-            x = random.randrange(-100,100)/10
-            z = random.randrange(-100,100)/10
+    # for _ in range(100):
+    #     while True:
+    #         x = random.randrange(-100,100)/10
+    #         z = random.randrange(-100,100)/10
             
-            if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
-                break
+    #         if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
+    #             break
         
-        Tree(viewer, texture_shadder, x,z)
+    #     Tree(viewer, texture_shadder, x,z)
     
     for x in range(6):
-        viewer.add(TexturedPlane(texture_shadder, skyboxFaces[x], skyboxIndices[x]))
-    
-    # skyboxTexture = SkyBoxMaterial("texture/LarnacaBeach")
-    # viewer.add(CubeMap(skyboxTexture))
+        viewer.add(SkyTexturedPlane(texture_shadder, x))
+    # viewer.add(SkyTexturedPlane(texture_shadder, 2))
 
     # start rendering loop
     viewer.run()
