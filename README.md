@@ -22,6 +22,7 @@ Open terminal and run the command below
 - Skybox
 - Particle Lava
 - Using Light on tree
+- Animated Lava
 
 ### Animation
 - Keyframe:
@@ -34,3 +35,7 @@ Open terminal and run the command below
         - K: Move Backward
         - J: Rotate Clockwise
         - L: Rotate Anti-Clockwise
+
+
+### Github
+https://github.com/Louisc10/volcano_and_lava

@@ -396,7 +396,7 @@ class LavaMesh(Mesh):
         time = (glfw.get_time()*0.01) % 0.6
         if time >= 0.3:
             time = 0.6 - time
-        self.color = time
+        self.color = time + 0.1
         super().draw(primitives=primitives, global_color=self.color, **uniforms)
 
 class Lava(Textured): #class TexturedPlane extends Textured
@@ -489,26 +489,26 @@ def main():
     # viewer.add(GridTerrain(volcano_shadder))
     viewer.add(TexturedPlane2(volcano_shadder, "texture/volcano.png"))
     
-    # for _ in range(100):
-    #     while True:
-    #         x = random.randrange(-100,100)/10
-    #         z = random.randrange(-100,100)/10
+    for _ in range(100):
+        while True:
+            x = random.randrange(-100,100)/10
+            z = random.randrange(-100,100)/10
             
-    #         if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
-    #             break
+            if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
+                break
         
-    #     Tree(viewer, texture_shadder, x,z)
+        Tree(viewer, texture_shadder, x,z)
     
-    # for x in range(6):
-    #     viewer.add(SkyTexturedPlane(normal_shadder, x))
+    for x in range(6):
+        viewer.add(SkyTexturedPlane(normal_shadder, x))
         
-    # Airplane(viewer, normal_shadder)
+    Airplane(viewer, normal_shadder)
     
-    # viewer.add(PointAnimation(shader, 10,0))
-    # viewer.add(PointAnimation(shader, 15,1))
-    # viewer.add(PointAnimation(shader, 5,2))
+    viewer.add(PointAnimation(shader, 10,0))
+    viewer.add(PointAnimation(shader, 15,1))
+    viewer.add(PointAnimation(shader, 5,2))
     
-    # viewer.add(TexturedPlane(normal_shadder, "texture/sand_grass.jpg"))
+    viewer.add(TexturedPlane(normal_shadder, "texture/sand_grass.jpg"))
     viewer.add(Lava(lava_shadder, "texture/magma.jpg"))
 
     # start rendering loop
