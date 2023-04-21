@@ -104,6 +104,12 @@ class Cylinder(Node):
         super().__init__()
         self.add(*load('model/cylinder.obj', shader))  # just load cylinder from file
         
+class Island(Node):
+    """ Very simple cylinder based on provided load function """
+    def __init__(self, shader):
+        super().__init__()
+        self.add(*load('model/cylinder.obj', shader, "texture/sand_grass.jpg"))  # just load cylinder from file
+        
 class Leaf(Node):
     def __init__(self, shader):
         super().__init__()
@@ -333,6 +339,26 @@ class PointAnimation(Mesh):
         # update position buffer on CPU, send to GPU attribute to draw with it
         coords = np.array(self.coords, 'f') + np.array(dp, 'f')
         super().draw(primitives, attributes=dict(position=coords), **uniforms)              
+
+class TexturedPlane(Textured): #class TexturedPlane extends Textured
+    """ Simple first textured object """
+    def __init__(self, shader, tex_file):
+        # prepare texture modes cycling variables for interactive toggling
+        self.wrap, self.filter = GL.GL_REPEAT, (GL.GL_LINEAR, GL.GL_LINEAR)
+        self.file = tex_file
+
+        w = 0.5
+        h = -0.4/3
+        # setup plane mesh to be textured
+        base_coords = ((-w, h, -w), (w, h, -w), (w, h, w), (-w, h, w))
+        scaled = 30 * np.array(base_coords, np.float32)
+        indices = np.array((0, 2, 1, 0, 3, 2), np.uint32)
+        tex_coord = ((0, 0), (5, 0), (5, 5), (0, 5))
+        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord = tex_coord), index=indices)
+
+        # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
+        texture = Texture(tex_file, self.wrap, *self.filter)
+        super().__init__(mesh, diffuse_map=texture)
               
 # -------------- main program and scene setup --------------------------------
 def main():    
@@ -365,6 +391,8 @@ def main():
     viewer.add(PointAnimation(shader, 10,0))
     viewer.add(PointAnimation(shader, 15,1))
     viewer.add(PointAnimation(shader, 5,2))
+    
+    viewer.add(TexturedPlane(normal_shadder, "texture/sand_grass.jpg"))
 
     # start rendering loop
     viewer.run()
