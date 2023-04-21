@@ -15,8 +15,7 @@ import math
 from core import Shader, Mesh, Viewer, Node, load
 from transform import translate, identity, rotate, scale, vec, quaternion, quaternion_matrix, quaternion_from_euler, quaternion_slerp
 from animation import KeyFrames, KeyFrameControlNode
-from texture import *
-
+from texture import SkyTexture, Texture, Textured
 
 class Axis(Mesh):
     """ Axis object useful for debugging coordinate frames """
@@ -27,7 +26,6 @@ class Axis(Mesh):
 
     def draw(self, primitives=GL.GL_LINES, **uniforms):
         super().draw(primitives=primitives, **uniforms)
-
 
 class Triangle(Mesh):
     """Hello triangle object"""
@@ -109,7 +107,49 @@ class Leaf(Node):
     def __init__(self, shader):
         super().__init__()
         self.add(*load('model/cube.obj', shader))
+
+class Airship(Node):
+    def __init__(self, shader):
+        super().__init__()
+        self.x = -10
+        self.angle = 0
+        self.add(*load('model/Airplane/11803_Airplane_v1_l1.obj', shader)) 
+        self.transform = translate(self.x,5, 0) @rotate((1,0,0),-90) @ scale(x=0.001, y=0.001, z=0.001)
+
+    def key_handler(self, key):
+        movement = 0.1
+        degree = 1
+        rot = 0
+        if key == glfw.KEY_I:
+            print("UP")
+            if self.x < 20:
+                self.x += movement
+        if key == glfw.KEY_K:
+            print("DOWN")
+            if self.x > -20:
+                self.x -= movement
+        if key == glfw.KEY_J:
+            print("LEFT")
+            self.angle += degree
+            rot = -5
+        if key == glfw.KEY_L:
+            print("RIGHT")
+            self.angle -= degree
+            rot = +5
+        print(self.x, self.angle)
+        self.transform = rotate((0,1,0),-self.angle) @ translate(self.x,5, 0) @ rotate((1,0,0),rot) @ rotate((1,0,0),-90) @ scale(x=0.001, y=0.001, z=0.001)
         
+class Airplane:
+    def __init__(self, viewer, shader):
+        super().__init__()
+        model = Airship(shader)
+        
+        plane = Node(transform=translate(0,5,0) @rotate((1,0,0),-90) @ scale(x=0.001, y=0.001, z=0.001))
+        
+        plane.add(model)
+        
+        viewer.add(model) 
+                 
 class Tree:
     def __init__(self, viewer, shader, x = 0, z = 0):
         
@@ -188,7 +228,6 @@ class SkyTexturedPlane(Textured):
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
         texture = SkyTexture(tex_file, index, self.wrap, *self.filter)
         super().__init__(mesh, diffuse_map=texture)
-
 
 class GridTerrain:    
     def __init__(self, shader, total_row=500, total_col=500, ratio=1/30):
@@ -286,21 +325,23 @@ def main():
     texture_shadder = Shader("shader/texture.vert", "shader/texture.frag")
     
     
-    viewer.add(Volcano(normal_shadder))
+    # viewer.add(Volcano(normal_shadder))
     viewer.add(GridTerrain(volcano_shadder))
     
-    for _ in range(100):
-        while True:
-            x = random.randrange(-100,100)/10
-            z = random.randrange(-100,100)/10
+    # for _ in range(100):
+    #     while True:
+    #         x = random.randrange(-100,100)/10
+    #         z = random.randrange(-100,100)/10
             
-            if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
-                break
+    #         if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
+    #             break
         
-        Tree(viewer, texture_shadder, x,z)
+    #     Tree(viewer, texture_shadder, x,z)
     
-    for x in range(6):
-        viewer.add(SkyTexturedPlane(texture_shadder, x))
+    # for x in range(6):
+    #     viewer.add(SkyTexturedPlane(texture_shadder, x))
+        
+    Airplane(viewer, texture_shadder)
 
     # start rendering loop
     viewer.run()
