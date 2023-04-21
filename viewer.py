@@ -144,10 +144,6 @@ class Airplane:
         super().__init__()
         model = Airship(shader)
         
-        plane = Node(transform=translate(0,5,0) @rotate((1,0,0),-90) @ scale(x=0.001, y=0.001, z=0.001))
-        
-        plane.add(model)
-        
         viewer.add(model) 
                  
 class Tree:
@@ -328,18 +324,18 @@ def main():
     # viewer.add(Volcano(normal_shadder))
     viewer.add(GridTerrain(volcano_shadder))
     
-    # for _ in range(100):
-    #     while True:
-    #         x = random.randrange(-100,100)/10
-    #         z = random.randrange(-100,100)/10
+    for _ in range(100):
+        while True:
+            x = random.randrange(-100,100)/10
+            z = random.randrange(-100,100)/10
             
-    #         if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
-    #             break
+            if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
+                break
         
-    #     Tree(viewer, texture_shadder, x,z)
+        Tree(viewer, texture_shadder, x,z)
     
-    # for x in range(6):
-    #     viewer.add(SkyTexturedPlane(texture_shadder, x))
+    for x in range(6):
+        viewer.add(SkyTexturedPlane(texture_shadder, x))
         
     Airplane(viewer, texture_shadder)
 
