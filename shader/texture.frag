@@ -3,7 +3,7 @@
 uniform sampler2D diffuse_map;
 
 // light dir, in world coordinates
-uniform vec3 light_dir;
+// uniform vec3 light_dir;
 
 // material properties
 uniform vec3 k_a;
@@ -20,6 +20,7 @@ in vec2 frag_tex_coords;
 out vec4 out_color;
 
 void main() {
+    vec3 light_dir = vec3(1,1,1);
     vec3 k_d = texture(diffuse_map, frag_tex_coords).rgb;
 
     vec3 ambiant = k_a;
@@ -46,7 +47,7 @@ void main() {
 
     vec3 col = ambiant + diffuse + specular;
 
-    out_color =  vec4(k_d, 1);
+    out_color =  vec4(col, 1);
 
     // //One texture
     // out_color = texture(diffuse_map, frag_tex_coords);

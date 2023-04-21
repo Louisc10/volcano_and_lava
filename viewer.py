@@ -363,9 +363,9 @@ def main():
         Tree(viewer, texture_shadder, x,z)
     
     for x in range(6):
-        viewer.add(SkyTexturedPlane(texture_shadder, x))
+        viewer.add(SkyTexturedPlane(normal_shadder, x))
         
-    Airplane(viewer, texture_shadder)
+    Airplane(viewer, normal_shadder)
     
     viewer.add(PointAnimation(shader, 10,0))
     viewer.add(PointAnimation(shader, 15,1))

@@ -1,20 +1,21 @@
 #version 330 core
 
-// input attribute variable, given per vertex
-in vec3 position;
-in vec3 color;
-
-// global matrix variables
+uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-// interpolated color for fragment shader, intialized at vertices
-out vec3 fragment_color;
+in vec3 position;
+in vec2 tex_coord;
+in vec3 normal;
+
+out vec2 frag_tex_coords;
+out vec3 w_position;
+out vec3 w_normal; 
 
 void main() {
-    // initialize interpolated colors at vertices
-    fragment_color = color;
+    gl_Position = projection * view * model * vec4(position, 1);
+    frag_tex_coords = tex_coord;
 
-    // tell OpenGL how to transform the vertex to clip coordinates
-    gl_Position = projection * view * vec4(position, 1);
+    w_normal = (model * vec4(normal, 0)).xyz;
+    w_position = (model *vec4(position, 1)).xyz;
 }
