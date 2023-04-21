@@ -122,22 +122,17 @@ class Airship(Node):
         degree = 1
         rot = 0
         if key == glfw.KEY_I:
-            print("UP")
             if self.x < 20:
                 self.x += movement
         if key == glfw.KEY_K:
-            print("DOWN")
             if self.x > -20:
                 self.x -= movement
         if key == glfw.KEY_J:
-            print("LEFT")
             self.angle += degree
             rot = -5
         if key == glfw.KEY_L:
-            print("RIGHT")
             self.angle -= degree
             rot = +5
-        print(self.x, self.angle)
         self.transform = rotate((0,1,0),-self.angle) @ translate(self.x,5, 0) @ rotate((1,0,0),rot) @ rotate((1,0,0),-90) @ scale(x=0.001, y=0.001, z=0.001)
         
 class Airplane:

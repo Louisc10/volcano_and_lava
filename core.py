@@ -373,12 +373,15 @@ class Viewer(Node):
         self.fill_modes = cycle([GL.GL_LINE, GL.GL_POINT, GL.GL_FILL])
 
     def run(self):
+        query, time = GL.glGenQueries(1)[0], GL.GLuint(0)
         """ Main render loop for this OpenGL window """
         while not glfw.window_should_close(self.win):
+            start_time = glfw.get_time()
             # clear draw buffer and depth buffer (<-TP2)
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
             win_size = glfw.get_window_size(self.win)
+            GL.glBeginQuery(GL.GL_TIME_ELAPSED, query)
 
             # draw our scene objects
             cam_pos = np.linalg.inv(self.trackball.view_matrix())[:, 3]
@@ -386,12 +389,25 @@ class Viewer(Node):
                       projection=self.trackball.projection_matrix(win_size),
                       model=identity(),
                       w_camera_position=cam_pos)
+            
+            # query CPU drawing preparation time and GPU drawing time
+            frame_time = 1e3 * (glfw.get_time() - start_time)
+            GL.glEndQuery(GL.GL_TIME_ELAPSED)
+            GL.glGetQueryObjectui64v(query, GL.GL_QUERY_RESULT, time)
 
             # flush render commands, and swap draw buffers
             glfw.swap_buffers(self.win)
 
+            swap_time = 1e3 * (glfw.get_time() - start_time)
+
+            # print frame rate stats
+            print('  \rGL render %.03fms, CPU %.03fms, frame swap at %.03fms' %
+                  (time.value * 1e-6, frame_time, swap_time), end='', flush=True)
+            
             # Poll for and process events
             glfw.poll_events()
+            
+            # frame swap time query
 
     def on_key(self, _win, key, _scancode, action, _mods):
         """ 'Q' or 'Escape' quits """
