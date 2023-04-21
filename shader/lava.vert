@@ -10,6 +10,7 @@ in vec2 tex_coord;
 in vec3 normal;
 
 out vec2 frag_tex_coords;
+out float frag_global_color;
 out vec3 w_position;
 out vec3 w_normal; 
 
