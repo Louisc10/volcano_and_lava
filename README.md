@@ -20,6 +20,7 @@ Open terminal and run the command below
 ### Rendering
 
 - Skybox
+- Particle Lava
 
 ### Animation
 - Keyframe:

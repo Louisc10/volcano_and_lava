@@ -16,6 +16,7 @@ from core import Shader, Mesh, Viewer, Node, load
 from transform import translate, identity, rotate, scale, vec, quaternion, quaternion_matrix, quaternion_from_euler, quaternion_slerp
 from animation import KeyFrames, KeyFrameControlNode
 from texture import SkyTexture, Texture, Textured
+from math import sin, sqrt, pow
 
 class Axis(Mesh):
     """ Axis object useful for debugging coordinate frames """
@@ -309,7 +310,34 @@ class GridTerrain:
     def __del__(self):
         GL.glDeleteVertexArrays(1, [self.glid])
         GL.glDeleteBuffers(3, self.buffers)
-               
+ 
+class PointAnimation(Mesh):
+    """ Simple animated particle set """
+    def __init__(self, shader, total, index):
+        # render points with wide size to be seen
+        GL.glPointSize(10)
+
+        # instantiate and store 4 points to animate
+        self.coords = []
+        colors = [(255/255,102/255,0/255), (255/255,37/255,0/255), (242/255,242/255,23/255)]
+        
+        for _ in range(total):
+            self.coords.append((random.random()*2-1, random.random()+1, random.random()*2-1))
+
+        # send as position attribute to GPU, set uniform variable global_color.
+        # GL_STREAM_DRAW tells OpenGL that attributes of this object
+        # will change on a per-frame basis (as opposed to GL_STATIC_DRAW)
+        super().__init__(shader, attributes=dict(position=self.coords),
+                         usage=GL.GL_STREAM_DRAW, global_color=colors[index])
+
+    def draw(self, primitives=GL.GL_POINTS, attributes=None, **uniforms):
+        # compute a sinusoidal x-coord displacement, different for each point.
+        # this could be any per-point function: build your own particle system!
+        dp = [[0, sin(i + glfw.get_time()), 0] for i in range(len(self.coords))]
+
+        # update position buffer on CPU, send to GPU attribute to draw with it
+        coords = np.array(self.coords, 'f') + np.array(dp, 'f')
+        super().draw(primitives, attributes=dict(position=coords), **uniforms)              
               
 # -------------- main program and scene setup --------------------------------
 def main():    
@@ -338,6 +366,10 @@ def main():
         viewer.add(SkyTexturedPlane(texture_shadder, x))
         
     Airplane(viewer, texture_shadder)
+    
+    viewer.add(PointAnimation(shader, 10,0))
+    viewer.add(PointAnimation(shader, 15,1))
+    viewer.add(PointAnimation(shader, 5,2))
 
     # start rendering loop
     viewer.run()
