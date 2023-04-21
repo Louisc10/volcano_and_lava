@@ -1,14 +1,34 @@
 #version 330 core
 
-// global color variable
-uniform vec3 global_color;
+uniform sampler2D diffuse_map;
 
-// receiving interpolated color for fragment shader
-in vec3 fragment_color;
+// light dir, in world coordinates
+// uniform vec3 light_dir;
 
-// output fragment color for OpenGL
+// material properties
+uniform vec3 k_a;
+// uniform vec3 k_d;
+uniform vec3 k_s;
+uniform float s;
+
+// world camera position
+uniform vec3 w_camera_position;
+
+in vec3 w_position;
+in vec3 w_normal;
+in vec2 frag_tex_coords;
 out vec4 out_color;
 
 void main() {
-    out_color = vec4(fragment_color + global_color, 1);
+    vec3 k_d = texture(diffuse_map, frag_tex_coords).rgb;
+
+    out_color =  vec4(k_d, 1);
+
+    // //One texture
+    // out_color = texture(diffuse_map, frag_tex_coords);
+
+    // // two texture
+    // vec4 color1 = texture(diffuse_map, frag_tex_coords);
+    // vec4 color2 = texture(second_texture, frag_tex_coords);
+    // out_color = mix(color1, color2, color2.a);  // analyse what is done here!
 }

@@ -359,6 +359,67 @@ class TexturedPlane(Textured): #class TexturedPlane extends Textured
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
         texture = Texture(tex_file, self.wrap, *self.filter)
         super().__init__(mesh, diffuse_map=texture)
+        
+class TexturedPlane2(Textured): #class TexturedPlane extends Textured
+    """ Simple first textured object """
+    def __init__(self, shader, tex_file):
+        # prepare texture modes cycling variables for interactive toggling
+        self.wrap, self.filter = GL.GL_REPEAT, (GL.GL_LINEAR, GL.GL_LINEAR)
+        self.file = tex_file
+
+        total_row=500
+        total_col=500
+        ratio=1/30
+        
+        self.shader = shader
+        
+        position = [] #np.array((),'f')
+        color = [] #np.array((),'f')
+        index = []
+        
+        top_volcano = np.array((146/255, 104/255, 41/255), 'f')
+        bottom_volcano = np.array((146/255, 116/255, 91/255), 'f')
+        shade_rock = np.array((90/255, 77/255, 65/255), 'f')
+        dark_shade = np.array((58/255, 50/255, 42/255), 'f')
+        #initialize the positon of the node
+        for i in range(total_row):
+            for j in range(total_col):
+                x = ((i-(total_row/2)) * ratio)
+                y = 0
+                z = ((j-(total_col/2)) * ratio)
+                position.append([x, y, z])
+                
+                temp = random.randrange(0,10)
+                if temp < 5:
+                    color.append([top_volcano, top_volcano, top_volcano])
+                elif temp < 8:
+                    color.append([bottom_volcano, bottom_volcano, bottom_volcano])
+                elif temp < 9:
+                    color.append([shade_rock, shade_rock, shade_rock])
+                else:
+                    color.append([dark_shade,dark_shade,dark_shade])
+                    # color.append([random.random(),random.random(),random.random()])
+                
+        #creating the terain
+        for i in range(total_row - 1):
+            for j in range(total_col - 1):
+                index.append([j+(total_col*i), (j+1)+(total_col*i), j+(total_col*(i+1))])
+        
+        for i in range(total_row - 1):
+            for j in range(total_col - 1):
+                index.append([j+(total_col*(i+1)), (j+1)+(total_col*i), (j+1)+(total_col*(i+1))])
+                
+        scaled = 1 * np.array(position, np.float32)
+        indices = np.array(index, np.uint32)
+        
+        tex_coord = []
+        for pos in position:
+            tex_coord.append((pos[0],pos[2]))
+        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord = tex_coord), index=indices)
+
+        # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
+        texture = Texture(tex_file, self.wrap, *self.filter)
+        super().__init__(mesh, diffuse_map=texture)
               
 # -------------- main program and scene setup --------------------------------
 def main():    
@@ -371,7 +432,8 @@ def main():
     
     
     # viewer.add(Volcano(normal_shadder))
-    viewer.add(GridTerrain(volcano_shadder))
+    # viewer.add(GridTerrain(volcano_shadder))
+    viewer.add(TexturedPlane2(volcano_shadder, "texture/volcano.png"))
     
     for _ in range(100):
         while True:

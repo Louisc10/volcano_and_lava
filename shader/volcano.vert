@@ -9,7 +9,9 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // interpolated color for fragment shader, intialized at vertices
-out vec3 fragment_color;
+in vec2 tex_coord;
+
+out vec2 frag_tex_coords;
 
 float randomHeight(vec3 position, float maxHeight){
     float height = sqrt(pow(position.x,2) + pow(position.z,2));
@@ -25,8 +27,7 @@ float randomHeight(vec3 position, float maxHeight){
 void main() {
     // initialize interpolated colors at vertices
     float maxHeight = 4;
-    fragment_color = color;
-
+    
     // tell OpenGL how to transform the vertex to clip coordinates
     float newHeight = randomHeight(position, maxHeight);
     vec3 newPos;
@@ -36,4 +37,6 @@ void main() {
         newPos = vec3(position.x, newHeight, position.z);
 
     gl_Position = projection * view * vec4(newPos, 1);
+
+    frag_tex_coords = tex_coord;
 }
