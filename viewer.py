@@ -359,6 +359,59 @@ class TexturedPlane(Textured): #class TexturedPlane extends Textured
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
         texture = Texture(tex_file, self.wrap, *self.filter)
         super().__init__(mesh, diffuse_map=texture)
+
+class LavaMesh(Mesh):
+    def __init__(self, shader):
+        self.color = 0
+        total_row = 20
+        total_col = 20
+        ratio = 1/175
+        
+        position = []
+        index = []
+        tex_coord = []
+        
+        for i in range(total_row):
+            for j in range(total_col):
+                x = ((i-(total_row/2)) * ratio)
+                y = 1/20
+                z = ((j-(total_col/2)) * ratio)
+                position.append([x, y, z])
+                tex_coord.append([(i-(total_row/2)), (j-(total_col/2))])
+                
+        #creating the terain
+        for i in range(total_row - 1):
+            for j in range(total_col - 1):
+                index.append([j+(total_col*i), (j+1)+(total_col*i), j+(total_col*(i+1))])
+        
+        for i in range(total_row - 1):
+            for j in range(total_col - 1):
+                index.append([j+(total_col*(i+1)), (j+1)+(total_col*i), (j+1)+(total_col*(i+1))])
+        
+        scaled = 30 * np.array(position, np.float32)
+        attributes=dict(position=scaled, tex_coord = tex_coord)
+        super().__init__(shader, attributes=attributes, index=index)
+
+    def draw(self, primitives=GL.GL_TRIANGLES, **uniforms):
+        time = (glfw.get_time()*0.01) % 0.6
+        if time >= 0.3:
+            time = 0.6 - time
+        self.color = time
+        super().draw(primitives=primitives, global_color=self.color, **uniforms)
+
+class Lava(Textured): #class TexturedPlane extends Textured
+    """ Simple first textured object """
+    def __init__(self, shader, tex_file):
+        # prepare texture modes cycling variables for interactive toggling
+        self.wrap, self.filter = GL.GL_MIRRORED_REPEAT, (GL.GL_LINEAR, GL.GL_LINEAR)
+        self.file = tex_file
+        
+        # setup plane mesh to be textured
+        mesh = LavaMesh(shader)
+
+        # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
+        texture = Texture(tex_file, self.wrap, *self.filter)
+        super().__init__(mesh, diffuse_map=texture)
         
 class TexturedPlane2(Textured): #class TexturedPlane extends Textured
     """ Simple first textured object """
@@ -429,32 +482,34 @@ def main():
     normal_shadder = Shader("shader/normal.vert", "shader/normal.frag")
     volcano_shadder = Shader("shader/volcano.vert", "shader/volcano.frag")
     texture_shadder = Shader("shader/texture.vert", "shader/texture.frag")
+    lava_shadder = Shader("shader/lava.vert", "shader/lava.frag")
     
     
     # viewer.add(Volcano(normal_shadder))
     # viewer.add(GridTerrain(volcano_shadder))
     viewer.add(TexturedPlane2(volcano_shadder, "texture/volcano.png"))
     
-    for _ in range(100):
-        while True:
-            x = random.randrange(-100,100)/10
-            z = random.randrange(-100,100)/10
+    # for _ in range(100):
+    #     while True:
+    #         x = random.randrange(-100,100)/10
+    #         z = random.randrange(-100,100)/10
             
-            if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
-                break
+    #         if math.sqrt(math.pow(x,2) + math.pow(z,2)) > 8 and math.sqrt(math.pow(x,2) + math.pow(z,2)) < 10 :
+    #             break
         
-        Tree(viewer, texture_shadder, x,z)
+    #     Tree(viewer, texture_shadder, x,z)
     
-    for x in range(6):
-        viewer.add(SkyTexturedPlane(normal_shadder, x))
+    # for x in range(6):
+    #     viewer.add(SkyTexturedPlane(normal_shadder, x))
         
-    Airplane(viewer, normal_shadder)
+    # Airplane(viewer, normal_shadder)
     
-    viewer.add(PointAnimation(shader, 10,0))
-    viewer.add(PointAnimation(shader, 15,1))
-    viewer.add(PointAnimation(shader, 5,2))
+    # viewer.add(PointAnimation(shader, 10,0))
+    # viewer.add(PointAnimation(shader, 15,1))
+    # viewer.add(PointAnimation(shader, 5,2))
     
-    viewer.add(TexturedPlane(normal_shadder, "texture/sand_grass.jpg"))
+    # viewer.add(TexturedPlane(normal_shadder, "texture/sand_grass.jpg"))
+    viewer.add(Lava(lava_shadder, "texture/magma.jpg"))
 
     # start rendering loop
     viewer.run()
