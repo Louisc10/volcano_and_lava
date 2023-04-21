@@ -316,7 +316,7 @@ class PointAnimation(Mesh):
     """ Simple animated particle set """
     def __init__(self, shader, total, index):
         # render points with wide size to be seen
-        GL.glPointSize(10)
+        GL.glPointSize(random.randrange(3,7))
 
         # instantiate and store 4 points to animate
         self.coords = []
